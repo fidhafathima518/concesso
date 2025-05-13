@@ -150,13 +150,11 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      // appBar: AppBar(title: Text('User Registration')),
+      appBar: AppBar(title: Text('User Registration')),
       body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(image:AssetImage("assets/image/stdnt regstr.png"),fit: BoxFit.cover)
-        ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+        height: double.infinity,
+        width: double.infinity,
+        padding: EdgeInsets.all(20),
           child: Form(
             key: _registerKey,
             child: Column(
@@ -270,10 +268,10 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                             'email': userCredential.user!.email,
                             'createdAt': DateTime.now(),
                             'status': 1,
-                            'role': "user"
+                            'role': "student"
                           });
 
-                          FirebaseFirestore.instance.collection('users')
+                          FirebaseFirestore.instance.collection('student')
                               .doc(userCredential.user!.uid)
                               .set({
                             "uid": userCredential.user!.uid,
@@ -283,7 +281,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                             'universityName': _universityController.text,
                             'createdAt': DateTime.now(),
                             'status': 1,
-                            'role': "user"
+                            'role': "student"
                           }).then((value) {
                             Navigator.pushNamedAndRemoveUntil(
                                 context, '/home', (Route route) => false);
@@ -298,7 +296,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                       }
                     }
                   },
-                  child: Text("Register"),
+                  child: Text("Student Register"),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -307,7 +305,6 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
             ),
           ),
         ),
-      ),
     );
   }
 }

@@ -12,6 +12,7 @@ import 'features/admin/view/complntsmngmnt.dart';
 import 'features/admin/view/manageapplications.dart';
 import 'features/institution/view/institution_home.dart';
 import 'features/institution/view/institution_reg.dart';
+import 'features/institution/view/verify.dart';
 import 'features/user/view/complaint.dart';
 import 'features/user/view/home.dart';
 import 'features/user/view/register_page.dart';
@@ -45,7 +46,9 @@ class ConcessoApp extends StatelessWidget {
         '/complaintsmanagement':(context)=>ComplaintsManagementPage(),
         '/announcements':(context)=>AnnouncementsPage(),
         '/manageApplications':(context)=>ManageApplicationsPage(),
-        '/cardReissuance':(context)=>CardReissuancePage()
+        '/cardReissuance':(context)=>CardReissuancePage(),
+        '/verifyApplications': (context) => VerifyStudentApplicationsPage()
+
       },
       initialRoute: '/',
 

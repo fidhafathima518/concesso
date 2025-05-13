@@ -8,12 +8,14 @@ class AnnouncementsPage extends StatefulWidget {
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
   final TextEditingController _announcementController = TextEditingController();
+  String _selectedTarget = 'all'; // Default target
 
   void _addAnnouncement() async {
     if (_announcementController.text.isNotEmpty) {
       await FirebaseFirestore.instance.collection('announcements').add({
         'message': _announcementController.text,
         'timestamp': FieldValue.serverTimestamp(),
+        'target': _selectedTarget, // student, institution, or all
       });
       _announcementController.clear();
     }
@@ -26,9 +28,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Announcements"),
-      ),
+      appBar: AppBar(title: Text("Announcements")),
       body: Column(
         children: [
           Padding(
@@ -45,6 +45,20 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                   ),
                 ),
                 SizedBox(width: 10),
+                DropdownButton<String>(
+                  value: _selectedTarget,
+                  items: const [
+                    DropdownMenuItem(value: 'all', child: Text("All")),
+                    DropdownMenuItem(value: 'student', child: Text("Students")),
+                    DropdownMenuItem(value: 'institution', child: Text("Institutions")),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedTarget = value!;
+                    });
+                  },
+                ),
+                SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: _addAnnouncement,
                   child: Text("Post"),
@@ -54,7 +68,10 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
           ),
           Expanded(
             child: StreamBuilder(
-              stream: FirebaseFirestore.instance.collection('announcements').orderBy('timestamp', descending: true).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('announcements')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -66,10 +83,17 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                   itemCount: snapshot.data!.docs.length,
                   itemBuilder: (context, index) {
                     var announcement = snapshot.data!.docs[index];
+                    final data = announcement.data() as Map<String, dynamic>;
+                    final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+                    final formattedDate = timestamp != null
+                        ? "${timestamp.day}/${timestamp.month}/${timestamp.year}"
+                        : "Unknown date";
+
                     return Card(
                       margin: EdgeInsets.all(8.0),
                       child: ListTile(
-                        title: Text(announcement['message']),
+                        title: Text(data['message'] ?? ''),
+                        subtitle: Text("Target: ${data['target']} • $formattedDate"),
                         trailing: IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () => _deleteAnnouncement(announcement.id),

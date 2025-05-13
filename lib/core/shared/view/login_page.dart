@@ -135,10 +135,10 @@ class _LoginPageState extends State<LoginPage> {
                             .doc(userCredential.user!.uid)
                             .get();
 
-                        if (rolesnap['role'] == 'user') {
+                        if (rolesnap['role'] == 'student') {
                           DocumentSnapshot snap = await FirebaseFirestore
                               .instance
-                              .collection('users')
+                              .collection('student')
                               .doc(userCredential.user!.uid)
                               .get();
 

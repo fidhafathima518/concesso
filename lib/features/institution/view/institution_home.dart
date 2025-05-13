@@ -5,9 +5,9 @@ import 'package:concessoapp/features/institution/view/verify.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:concessoapp/features/institution/view/applications.dart';
 import 'package:concessoapp/features/institution/view/profile.dart';
 
+import 'institutenotification.dart';
 import 'manage.dart';
 class InstitutionHome extends StatefulWidget {
   @override
@@ -21,8 +21,8 @@ class _InstitutionHomeState extends State<InstitutionHome> {
 
   final List<Widget> _pages = [
     InstitutionDashboard(),
-    InstitutionApplications(),
     InstitutionSupport(),
+    InstitutionNotificationsPage(userType: 'institution'),
     InstitutionProfile(),
   ];
 
@@ -78,10 +78,11 @@ class _InstitutionHomeState extends State<InstitutionHome> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+          backgroundColor: Colors.black,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Applications"),
           BottomNavigationBarItem(icon: Icon(Icons.support), label: "Support"),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
         selectedItemColor: Colors.blue,
