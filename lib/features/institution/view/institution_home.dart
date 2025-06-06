@@ -9,6 +9,7 @@ import 'package:concessoapp/features/institution/view/profile.dart';
 
 import 'institutenotification.dart';
 import 'manage.dart';
+
 class InstitutionHome extends StatefulWidget {
   @override
   _InstitutionHomeState createState() => _InstitutionHomeState();
@@ -17,14 +18,6 @@ class InstitutionHome extends StatefulWidget {
 class _InstitutionHomeState extends State<InstitutionHome> {
   int _selectedIndex = 0;
   String institutionName = "Loading...";
-  String institutionRole = "Verification Panel";
-
-  final List<Widget> _pages = [
-    InstitutionDashboard(),
-    InstitutionSupport(),
-    InstitutionNotificationsPage(userType: 'institution'),
-    InstitutionProfile(),
-  ];
 
   @override
   void initState() {
@@ -56,6 +49,13 @@ class _InstitutionHomeState extends State<InstitutionHome> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      InstitutionDashboard(institutionName: institutionName),
+      InstitutionSupport(),
+      InstitutionNotificationsPage(userType: 'institution'),
+      InstitutionProfile(),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Institution Dashboard"),
@@ -73,27 +73,29 @@ class _InstitutionHomeState extends State<InstitutionHome> {
           ),
         ],
       ),
-      body: _pages[_selectedIndex], // Show the selected page
-
+      body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-          backgroundColor: Colors.black,
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.support), label: "Support"),
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
       ),
     );
   }
 }
 
-// Institution Dashboard
 class InstitutionDashboard extends StatelessWidget {
+  final String institutionName;
+
+  const InstitutionDashboard({required this.institutionName});
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -155,7 +157,7 @@ class InstitutionDashboard extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Loading...", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(institutionName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text("Verification Panel", style: TextStyle(color: Colors.grey)),
           ],
         ),

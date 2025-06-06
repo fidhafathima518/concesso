@@ -172,7 +172,6 @@ class _LoginPageState extends State<LoginPage> {
                           _pref.setString('name', snap['name']!);
                           _pref.setString('uid', snap['uid']!);
                           _pref.setString('email', snap['email']!);
-                          _pref.setString('phone', snap['phone']!);
                           _pref.setString('role', rolesnap['role']!);
 
                           Navigator.pushNamedAndRemoveUntil(context,

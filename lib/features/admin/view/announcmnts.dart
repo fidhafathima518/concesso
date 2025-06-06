@@ -8,15 +8,18 @@ class AnnouncementsPage extends StatefulWidget {
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
   final TextEditingController _announcementController = TextEditingController();
-  String _selectedTarget = 'all'; // Default target
+  String _selectedTarget = 'all';
 
   void _addAnnouncement() async {
     if (_announcementController.text.isNotEmpty) {
+      final now = Timestamp.fromDate(DateTime.now());
+
       await FirebaseFirestore.instance.collection('announcements').add({
         'message': _announcementController.text,
-        'timestamp': FieldValue.serverTimestamp(),
-        'target': _selectedTarget, // student, institution, or all
+        'timestamp': now,
+        'target': _selectedTarget,
       });
+
       _announcementController.clear();
     }
   }

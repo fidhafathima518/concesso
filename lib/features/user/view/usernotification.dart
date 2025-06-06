@@ -18,7 +18,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
     super.initState();
     detectUserType();
   }
-
   Future<void> detectUserType() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {

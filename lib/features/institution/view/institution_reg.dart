@@ -113,9 +113,14 @@
 //   }
 // }
 
+
+
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/styles.dart';
 import '../../../core/utils/app_text.dart';
 
@@ -129,20 +134,82 @@ class InstitutionRegistration extends StatefulWidget {
 class _InstitutionRegistrationState extends State<InstitutionRegistration> {
   final _registerKey = GlobalKey<FormState>();
 
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passController = TextEditingController();
-  TextEditingController _institutionNameController = TextEditingController();
-  TextEditingController _institutionIdController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
+  final TextEditingController _institutionNameController = TextEditingController();
+  final TextEditingController _institutionIdController = TextEditingController();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  void _registerInstitution() async {
+    if (_registerKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      try {
+        // Register user
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passController.text.trim(),
+        );
+
+        final uid = userCredential.user!.uid;
+        final email = _emailController.text.trim();
+        final name = _institutionNameController.text.trim();
+        final institutionID = _institutionIdController.text.trim();
+
+        // Save login data
+        await FirebaseFirestore.instance.collection('login').doc(uid).set({
+          'uid': uid,
+          'email': email,
+          'createdAt': DateTime.now(),
+          'status': 1,
+          'role': "institution",
+        });
+
+        // Save institution data
+        await FirebaseFirestore.instance.collection('institution').doc(uid).set({
+          'uid': uid,
+          'email': email,
+          'name': name,
+          'institutionID': institutionID,
+          'createdAt': DateTime.now(),
+          'status': 1,
+          'role': "institution",
+        });
+
+        // Save data to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('role', 'institution');
+        await prefs.setString('institutionName', name);
+
+        // Navigate to home
+        Navigator.pushNamedAndRemoveUntil(context, '/InstitutionHome', (route) => false);
+      } on FirebaseAuthException catch (e) {
+        String message = 'An error occurred';
+        if (e.code == 'email-already-in-use') {
+          message = 'Email already in use';
+        } else if (e.code == 'invalid-email') {
+          message = 'Invalid email';
+        } else if (e.code == 'weak-password') {
+          message = 'Password too weak';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Institution Registration')),
+      appBar: AppBar(title: const Text('Institution Registration')),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _registerKey,
           child: Column(
@@ -152,122 +219,81 @@ class _InstitutionRegistrationState extends State<InstitutionRegistration> {
                 data: "Institution Registration",
                 mystyle: MyStyle.loginHeading,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // Email Input
+              // Email
               TextFormField(
                 controller: _emailController,
-                validator: (value) {
-                  if (value!.isEmpty) return "Enter email";
-                  return null;
-                },
-                decoration: InputDecoration(
+                validator: (value) =>
+                (value == null || value.isEmpty) ? "Enter email" : null,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
                   hintText: "Email",
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-              // Institution Name Input
+              // Institution Name
               TextFormField(
                 controller: _institutionNameController,
                 validator: (value) {
-                  if (value!.isEmpty) return "Enter Institution Name";
-                  if (value.length < 4) return "Name should be at least 4 characters";
+                  if (value == null || value.isEmpty) return "Enter institution name";
+                  if (value.length < 4) return "Name must be at least 4 characters";
                   return null;
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: "Institution Name",
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-              // Institution ID Input
+              // Institution ID (optional)
               TextFormField(
                 controller: _institutionIdController,
-                decoration: InputDecoration(
-                  hintText: "Institution ID",
+                decoration: const InputDecoration(
+                  hintText: "Institution ID (optional)",
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-              // Password Input with Visibility Toggle
+              // Password
               TextFormField(
                 controller: _passController,
                 obscureText: _obscurePassword,
                 validator: (value) {
-                  if (value!.isEmpty) return "Enter password";
-                  if (value.length < 6) return "Password should be at least 6 characters";
+                  if (value == null || value.isEmpty) return "Enter password";
+                  if (value.length < 6) return "Password must be at least 6 characters";
                   return null;
                 },
                 decoration: InputDecoration(
                   hintText: "Password",
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: const OutlineInputBorder(),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // Register Button with Gradient Styling
+              // Submit Button
               _isLoading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(
-                onPressed: () async {
-                  if (_registerKey.currentState!.validate()) {
-                    setState(() => _isLoading = true);
-
-                    try {
-                      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-                          email: _emailController.text, password: _passController.text);
-
-                      if (userCredential.user != null) {
-                        // Save login details
-                        FirebaseFirestore.instance.collection('login').doc(userCredential.user!.uid).set({
-                          "uid": userCredential.user!.uid,
-                          'email': userCredential.user!.email,
-                          'createdAt': DateTime.now(),
-                          'status': 1,
-                          'role': "institution"
-                        });
-
-                        // Save institution details
-                        FirebaseFirestore.instance.collection('institution').doc(userCredential.user!.uid).set({
-                          "uid": userCredential.user!.uid,
-                          'name': _institutionNameController.text,
-                          'email': userCredential.user!.email,
-                          'institutionID': _institutionIdController.text,
-                          'createdAt': DateTime.now(),
-                          'status': 1,
-                          'role': "institution"
-                        }).then((value) {
-                          Navigator.pushNamedAndRemoveUntil(context, '/InstitutionHome', (Route route) => false);
-                        });
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Error: ${e.toString()}")),
-                      );
-                    } finally {
-                      setState(() => _isLoading = false);
-                    }
-                  }
-                },
-                child: Text("Register"),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14),
+                  ? const CircularProgressIndicator()
+                  : SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _registerInstitution,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text("Register"),
                 ),
               ),
             ],
@@ -277,7 +303,3 @@ class _InstitutionRegistrationState extends State<InstitutionRegistration> {
     );
   }
 }
-
-
-
-
