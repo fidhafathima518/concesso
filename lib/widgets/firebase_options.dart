@@ -71,5 +71,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'concessoapp.firebasestorage.app',
     iosBundleId: 'com.ralfiz.concessoapp',
   );
-
 }
